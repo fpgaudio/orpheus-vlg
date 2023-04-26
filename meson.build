@@ -31,6 +31,7 @@ test_includes = [
 # Orpheus
 ###############################################################################
 orpheus_proj = subproject('orpheus')
+orpheus_dep = orpheus_proj.get_variable('liborpheus_dep')
 
 # Testing Things
 ###############################################################################
@@ -40,7 +41,7 @@ test_sources = [
 
 foreach test_src : test_sources
   t_exe = executable(test_src[0], test_src[1],
-                     dependencies: verilator_dep,
+                     dependencies: [verilator_dep, orpheus_dep],
                      include_directories: [test_includes, test_src[2]])
   test(test_src[0], t_exe)
 endforeach
