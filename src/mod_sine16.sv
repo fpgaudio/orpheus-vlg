@@ -1,19 +1,22 @@
-module orpheus_sine16(o, angle_input);
-  output signed [15:0] o;
-  input signed [15:0] angle_input;
+`default_nettype none
 
-  wire signed [15:0] angle;
-  wire [0:0] carry;
+module mod_sine16
+  (output var signed [15:0] o_sine
+  , input var signed [15:0] i_angle
+  );
 
-  assign angle = angle_input << 1;
+  var bit signed [15:0] angle;
+  logic [0:0] carry;
+
+  assign angle = i_angle << 1;
   assign carry = angle < 0;
 
-  wire signed [15:0] angleBound;
+  var bit signed [15:0] angleBound;
   assign angleBound = (angle == (angle | 'h4000)) ? ('hffff - angle) : (angle);
-  wire signed [15:0] angleBound2;
+  var bit signed [15:0] angleBound2;
   assign angleBound2 = (angleBound & 'h7fff) >> 1;
 
-  wire unsigned [31:0] angleU;
+  var bit unsigned [31:0] angleU;
   assign angleU = 32'(angleBound2);
 
   //// Implement the formula
@@ -29,13 +32,13 @@ module orpheus_sine16(o, angle_input);
   const bit [31:0] coeffA = 12;
 
   // Ugly, but optimizable
-  wire unsigned [31:0] outU0;
-  wire unsigned [31:0] outU1;
-  wire unsigned [31:0] outU2;
-  wire unsigned [31:0] outU3;
-  wire unsigned [31:0] outU4;
-  wire unsigned [31:0] outU5;
-  wire unsigned [31:0] outU6;
+  var bit unsigned [31:0] outU0;
+  var bit unsigned [31:0] outU1;
+  var bit unsigned [31:0] outU2;
+  var bit unsigned [31:0] outU3;
+  var bit unsigned [31:0] outU4;
+  var bit unsigned [31:0] outU5;
+  var bit unsigned [31:0] outU6;
   assign outU0 = (coeffC1 * angleU) >> coeffN;
   assign outU1 = coeffB1 - ((angleU * outU0) >> coeffR);
   assign outU2 = angleU * (outU1 >> coeffN);
@@ -44,5 +47,5 @@ module orpheus_sine16(o, angle_input);
   assign outU5 = angleU * (outU4 >> coeffN);
   assign outU6 = (outU5 + (1 << (coeffQ - coeffA - 1))) >> (coeffQ - coeffA);
 
-  assign o = carry ? -(16'(outU6)) : (16'(outU6));
+  assign o_sine = carry ? -(16'(outU6)) : (16'(outU6));
 endmodule

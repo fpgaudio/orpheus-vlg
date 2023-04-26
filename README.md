@@ -4,7 +4,8 @@ This is the SystemVerilog implementation for the orpheus sound engine.
 
 ## Getting Started
 
-Make sure you have [verilator](https://www.veripool.org/verilator/) and
+Make sure you have [verilator](https://www.veripool.org/verilator/),
+[svlint](https://github.com/dalance/svlint) and
 [meson](https://mesonbuild.com/). When you clone the repo, proceed as follows:
 
 ```bash

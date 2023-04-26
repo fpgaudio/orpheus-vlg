@@ -1,7 +1,6 @@
 project('orpheus-verilog', 'cpp', default_options: [
   'default_library=static',
   'cpp_std=c++20',
-  'warning_level=1',
 ], version: '0.1.0')
 
 verilator_dep = dependency('verilator')
@@ -13,12 +12,14 @@ verilated_cpp = verilator_dep.get_pkgconfig_variable('includedir') / 'verilated.
 ###############################################################################
 verilator = find_program('verilator')
 verilog_sources = [
-  'src/orpheus_sine16.verilog'
+  'src/mod_sine16.sv'
 ]
 
 verilog_sim_objs = custom_target('verilog-sim',
-  output: ['Vorpheus_sine16__ALL.a'],
+  output: ['Vmod_sine16__ALL.a'],
   input: verilog_sources,
+  build_by_default: true,
+  build_always: true,
   command: [verilator, '--cc', '--build', '--assert', '@INPUT@',
             '-Mdir', '@OUTDIR@'],
 )
