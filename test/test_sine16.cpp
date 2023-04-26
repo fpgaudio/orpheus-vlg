@@ -3,7 +3,7 @@
 #include "catch2/catch.hpp"
 #include "Vorpheus_sine16.h"
 
-TEST_CASE("Test sin16 for positive numbers between 0 and 2pi") {
+TEST_CASE("Test sin16 against Orpheus") {
   auto model = std::make_unique<Vorpheus_sine16>();
   for (std::int16_t i = 0; i < std::numeric_limits<int16_t>::max(); i++) {
     model->angle_input = i;

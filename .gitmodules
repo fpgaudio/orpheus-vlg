@@ -1,6 +1,9 @@
-[submodule "lib/Catch2"]
-	path = lib/Catch2
+[submodule "subprojects/Catch2"]
+	path = subprojects/Catch2
 	url = https://github.com/catchorg/Catch2.git
-[submodule "lib/asciichart"]
-	path = lib/asciichart
+[submodule "subprojects/asciichart"]
+	path = subprojects/asciichart
 	url = https://github.com/Civitasv/asciichart.git
+[submodule "subprojects/orpheus"]
+	path = subprojects/orpheus
+	url = git@github.com:fpgaudio/orpheus.git

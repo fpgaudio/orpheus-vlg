@@ -1,7 +1,7 @@
 project('orpheus-verilog', 'cpp', default_options: [
   'default_library=static',
   'cpp_std=c++20',
-  'warning_level=2',
+  'warning_level=1',
 ], version: '0.1.0')
 
 verilator_dep = dependency('verilator')
@@ -24,9 +24,13 @@ verilog_sim_objs = custom_target('verilog-sim',
 )
 
 test_includes = [
-  'lib/Catch2/single_include',
-  'lib/asciichart/include/ascii',
+  'subprojects/Catch2/single_include',
+  'subprojects/asciichart/include/ascii',
 ]
+
+# Orpheus
+###############################################################################
+orpheus_proj = subproject('orpheus')
 
 # Testing Things
 ###############################################################################
