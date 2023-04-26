@@ -1,11 +1,11 @@
-module orpheus_sine16(o, angle_input);
-  output signed [15:0] o;
-  input signed [15:0] angle_input;
-
+module orpheus_sine16(
+    output signed [15:0] o_sine,
+    input signed [15:0] i_angle
+);
   wire signed [15:0] angle;
   wire [0:0] carry;
 
-  assign angle = angle_input << 1;
+  assign angle = i_angle << 1;
   assign carry = angle < 0;
 
   wire signed [15:0] angleBound;
@@ -19,14 +19,14 @@ module orpheus_sine16(o, angle_input);
   //// Implement the formula
   //// y * 2^-n * ( A1 - 2^(q-p)* y * 2^-n * y * 2^-n * [B1 - 2^-r * y * 2^-n * C1
   //// * y]) * 2^(a-q)
-  const bit [31:0] coeffA1 = 3370945099;
-  const bit [31:0] coeffB1 = 2746362156;
-  const bit [31:0] coeffC1 = 292421;
-  const bit [31:0] coeffN = 13;
-  const bit [31:0] coeffR = 3;
-  const bit [31:0] coeffP = 32;
-  const bit [31:0] coeffQ = 31;
-  const bit [31:0] coeffA = 12;
+  const integer coeffA1 = 3370945099;
+  const integer coeffB1 = 2746362156;
+  const integer coeffC1 = 292421;
+  const integer coeffN = 13;
+  const integer coeffR = 3;
+  const integer coeffP = 32;
+  const integer coeffQ = 31;
+  const integer coeffA = 12;
 
   // Ugly, but optimizable
   wire unsigned [31:0] outU0;
@@ -44,5 +44,5 @@ module orpheus_sine16(o, angle_input);
   assign outU5 = angleU * (outU4 >> coeffN);
   assign outU6 = (outU5 + (1 << (coeffQ - coeffA - 1))) >> (coeffQ - coeffA);
 
-  assign o = carry ? -(16'(outU6)) : (16'(outU6));
+  assign o_sine = carry ? -(16'(outU6)) : (16'(outU6));
 endmodule
