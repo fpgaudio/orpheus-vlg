@@ -28,7 +28,7 @@ TEST_CASE("Test attenutator against Orpheus") {
         static_cast<int16_t>(model->o_attenuated) == (j * i) / std::numeric_limits<int16_t>::max()
       );
 
-      inputStream << std::setw(4) << std::setfill('0') << std::hex << model->i_attenfactor << std::endl;
+      attenuationStream << std::setw(4) << std::setfill('0') << std::hex << model->i_attenfactor << std::endl;
       inputStream << std::setw(4) << std::setfill('0') << std::hex << model->i_raw << std::endl;
       outputStream << std::setw(4) << std::setfill('0') << std::hex << model->o_attenuated << std::endl;
     }
