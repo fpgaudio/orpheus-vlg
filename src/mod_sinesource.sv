@@ -4,7 +4,7 @@ module mod_sinesource
   , input var unsigned [31:0] i_period
   );
 
-  parameter MAX_I16 = 32767;
+  localparam MAX_I16 = 32767;
 
   var bit unsigned [63:0] angle64;
   assign angle64 = (MAX_I16 * i_time) / 64'(i_period);
