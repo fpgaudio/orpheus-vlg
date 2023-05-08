@@ -7,3 +7,6 @@
 [submodule "subprojects/orpheus"]
 	path = subprojects/orpheus
 	url = git@github.com:fpgaudio/orpheus.git
+[submodule "subprojects/gnuplot-iostream"]
+	path = subprojects/gnuplot-iostream
+	url = https://github.com/dstahlke/gnuplot-iostream.git

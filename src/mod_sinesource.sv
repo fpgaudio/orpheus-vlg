@@ -1,5 +1,3 @@
-`default_nettype none
-
 module mod_sinesource
   ( output var signed [31:0] o_sine
   , input var unsigned [63:0] i_time

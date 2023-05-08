@@ -18,7 +18,8 @@ TEST_CASE("Test attenutator against Orpheus") {
 
   for (std::int16_t i = 0; i < 30; i++) {
     model->i_attenfactor = i;
-    for (std::int16_t j = 0; j < std::numeric_limits<int16_t>::max(); j++) {
+    for (std::int16_t j = std::numeric_limits<int16_t>::min();
+         j < std::numeric_limits<int16_t>::max(); j++) {
       model->i_raw = j;
       model->eval();
 

@@ -22,7 +22,8 @@ verilog_models = [
   'mod_sine16',
   'mod_sinesource',
   'mod_attenuator',
-  'mod_clock'
+  'mod_clock',
+  'mod_synth'
 ]
 
 test_includes = [
