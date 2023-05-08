@@ -1,0 +1,42 @@
+name: 'Regression Tests'
+on:
+  pull_request:
+    branches:
+      - 'main'
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  reg-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Get Python
+        uses: actions/setup-python@v4
+      - name: Fetch Build Dependencies
+        run: sudo apt-get install -y ninja-build verilator
+      - name: Fetch meson
+        run: sudo python3 -m pip install meson
+
+      - name: Fetch Submodules
+        run: git submodule update --init --recursive
+
+      - name: Setup Build Directory
+        run: meson setup build
+
+      - name: Attempt to Build
+        working-directory: ./build
+        run: meson compile
+
+      - name: Test
+        working-directory: ./build
+        run: meson test
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: build/
