@@ -3,6 +3,8 @@ project('orpheus-verilog', 'cpp', default_options: [
   'cpp_std=c++20',
 ], version: '0.1.0')
 
+fs = import('fs')
+
 # Verilator
 ###############################################################################
 verilator_dep = dependency('verilator')
@@ -39,12 +41,16 @@ foreach model : verilog_models
               '-I' + meson.source_root() / 'src', '-Mdir', '@OUTDIR@']
   )
 
-  test_target = executable(
-    'test_' + model,
-    ['test' / 'test_' + model + '.cpp', verilated_cpp, vlg_target],
-    dependencies: [verilator_dep, orpheus_dep],
-    include_directories: [test_includes]
-  )
+  test_source = meson.source_root() / 'test' / 'test_' + model + '.cpp'
+
+  if fs.exists(test_source)
+    test_target = executable(
+      'test_' + model,
+      ['test' / 'test_' + model + '.cpp', verilated_cpp, vlg_target],
+      dependencies: [verilator_dep, orpheus_dep],
+      include_directories: [test_includes]
+    )
+  endif
 
   test('test_' + model, test_target)
 endforeach

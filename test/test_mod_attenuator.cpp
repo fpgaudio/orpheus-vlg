@@ -1,4 +1,5 @@
 #include "orpheus.hpp"
+#include "test/test_utils.hpp"
 #include <cstdint>
 #include <fstream>
 #include <limits>
@@ -11,12 +12,9 @@
 TEST_CASE("Test attenutator against Orpheus") {
   auto model = std::make_unique<Vmod_attenuator>();
 
-  std::ofstream inputStream;
-  inputStream.open("mod_attenuator_i_raw.txt");
-  std::ofstream attenuationStream;
-  attenuationStream.open("mod_attenuator_i_attenfactor.txt");
-  std::ofstream outputStream;
-  outputStream.open("mod_attenuator_o_attenuated.txt");
+  LogFile inputStream { "mod_attenuator_i_raw.txt" };
+  LogFile attenuationStream { "mod_attenuator_i_attenfactor.txt" };
+  LogFile outputStream { "mod_attenuator_o_attenuated.txt" };
 
   for (std::int16_t i = 0; i < 30; i++) {
     model->i_attenfactor = i;
@@ -28,13 +26,9 @@ TEST_CASE("Test attenutator against Orpheus") {
         static_cast<int16_t>(model->o_attenuated) == (j * i) / std::numeric_limits<int16_t>::max()
       );
 
-      attenuationStream << std::setw(4) << std::setfill('0') << std::hex << model->i_attenfactor << std::endl;
-      inputStream << std::setw(4) << std::setfill('0') << std::hex << model->i_raw << std::endl;
-      outputStream << std::setw(4) << std::setfill('0') << std::hex << model->o_attenuated << std::endl;
+      attenuationStream.dump(model->i_attenfactor);
+      inputStream.dump(model->i_raw);
+      outputStream.dump(model->o_attenuated);
     }
   }
-
-  inputStream.close();
-  attenuationStream.close();
-  outputStream.close();
 }
