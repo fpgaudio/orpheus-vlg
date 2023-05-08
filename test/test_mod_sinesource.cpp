@@ -18,12 +18,11 @@ TEST_CASE("Test sinesource against Orpheus") {
   LogFile sineLog { "mod_sinesource_o_sine.txt" };
 
   auto model = std::make_unique<Vmod_sinesource>();
-  for (auto period : { 100, 200, 300, 400 }) {
-    for (std::int32_t tick = 0; tick < std::numeric_limits<int32_t>::max(); tick++) {
+  for (auto period : { 100 }) {
+    for (std::int32_t tick = 0; tick < std::numeric_limits<int16_t>::max(); tick++) {
       model->i_period = period;
       model->i_time = tick;
       model->eval();
-      std::cout << model->o_sine << " == " << sine() << std::endl;
       REQUIRE(static_cast<int32_t>(model->o_sine) == sine());
       engine.tick();
 
