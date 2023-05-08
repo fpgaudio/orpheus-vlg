@@ -6,4 +6,4 @@
 	url = https://github.com/Civitasv/asciichart.git
 [submodule "subprojects/orpheus"]
 	path = subprojects/orpheus
-	url = git@github.com:fpgaudio/orpheus.git
+	url = https://github.com/fpgaudio/orpheus.git
