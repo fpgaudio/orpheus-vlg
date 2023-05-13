@@ -39,6 +39,7 @@ verilator_global_warn_excludes = [
 
 # Testing Fixtures
 ###############################################################################
+catch2_dep = dependency('catch2')
 gnuplot = find_program('gnuplot', required: get_option('test-graphs'))
 gnuplot_iostream_proj = cmake.subproject('gnuplot-iostream',
                                          required: gnuplot.found())
