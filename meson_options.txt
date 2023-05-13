@@ -1,0 +1,2 @@
+option('test-graphs', type: 'feature', value: 'disabled',
+       description: 'Whether Gnuplot graphs will be output. Requires gnuplot!')

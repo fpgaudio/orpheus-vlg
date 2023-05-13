@@ -1,6 +1,7 @@
 module mod_synth
-  ( output logic signed [31:0] o_sound
-  , input logic unsigned [63:0] i_time
+  ( output logic signed [31:0] o_sound // The output data.
+  , output logic o_ready // Pulsed when the signal is ready.
+  , input logic unsigned [63:0] i_time // The current time tick.
   , input logic signed [15:0] i_atten1
   , input logic signed [15:0] i_atten2
   , input logic signed [15:0] i_atten3

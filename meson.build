@@ -3,6 +3,7 @@ project('orpheus-verilog', 'cpp', default_options: [
   'cpp_std=c++20',
 ], version: '0.1.0')
 
+cmake = import('cmake')
 fs = import('fs')
 
 # Verilator
@@ -26,10 +27,32 @@ verilog_models = [
   'mod_synth'
 ]
 
+verilog_includes = [
+  '-I' + meson.source_root() / 'src',
+  '-I' + meson.source_root() / 'subprojects' / 'cordic' / 'sv'
+]
+
+# Anti-pattern. Ideally this would be removed
+verilator_global_warn_excludes = [
+  '-Wno-LITENDIAN', '-Wno-WIDTH' # Cordic subproject uses these
+]
+
+# Testing Fixtures
+###############################################################################
+gnuplot = find_program('gnuplot', required: get_option('test-graphs'))
+gnuplot_iostream_proj = cmake.subproject('gnuplot-iostream',
+                                         required: gnuplot.found())
+gnuplot_iostream_dep = gnuplot_iostream_proj.dependency('gnuplot-iostream')
+
 test_includes = [
   'subprojects/Catch2/single_include',
   'subprojects/asciichart/include/ascii',
 ]
+
+test_flags = []
+if get_option('test-graphs').enabled()
+  test_flags += '-DORPHEUS_VLG_TEST_PLOTTING'
+endif
 
 foreach model : verilog_models
   vlg_target = custom_target(
@@ -37,9 +60,9 @@ foreach model : verilog_models
     output: ['V' + model + '__ALL.a'],
     input: ['src' / model + '.sv'],
     build_by_default: true,
-    build_always: true,
-    command: [verilator, '--cc', '--build', '--assert', '@INPUT@',
-              '-I' + meson.source_root() / 'src', '-Mdir', '@OUTDIR@']
+    command: [verilator, '--cc', '--build', '@INPUT@',
+              verilator_global_warn_excludes,
+              verilog_includes, '-Mdir', '@OUTDIR@']
   )
 
   test_source = meson.source_root() / 'test' / 'test_' + model + '.cpp'
@@ -48,7 +71,8 @@ foreach model : verilog_models
     test_target = executable(
       'test_' + model,
       ['test' / 'test_' + model + '.cpp', verilated_cpp, vlg_target],
-      dependencies: [verilator_dep, orpheus_dep],
+      cpp_args: test_flags,
+      dependencies: [verilator_dep, orpheus_dep, gnuplot_iostream_dep],
       include_directories: [test_includes]
     )
   endif
