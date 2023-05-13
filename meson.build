@@ -44,11 +44,6 @@ gnuplot_iostream_proj = cmake.subproject('gnuplot-iostream',
                                          required: gnuplot.found())
 gnuplot_iostream_dep = gnuplot_iostream_proj.dependency('gnuplot-iostream')
 
-test_includes = [
-  'subprojects/Catch2/single_include',
-  'subprojects/asciichart/include/ascii',
-]
-
 test_flags = []
 if get_option('test-graphs').enabled()
   test_flags += '-DORPHEUS_VLG_TEST_PLOTTING'
@@ -72,8 +67,11 @@ foreach model : verilog_models
       'test_' + model,
       ['test' / 'test_' + model + '.cpp', verilated_cpp, vlg_target],
       cpp_args: test_flags,
-      dependencies: [verilator_dep, orpheus_dep, gnuplot_iostream_dep],
-      include_directories: [test_includes]
+      dependencies: [
+        catch2_dep,
+        verilator_dep,
+        orpheus_dep,
+        gnuplot_iostream_dep],
     )
   endif
 

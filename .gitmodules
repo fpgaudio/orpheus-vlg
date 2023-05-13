@@ -1,12 +1,6 @@
 [submodule "subprojects/Catch2"]
 	path = subprojects/Catch2
 	url = https://github.com/catchorg/Catch2.git
-[submodule "subprojects/asciichart"]
-	path = subprojects/asciichart
-	url = https://github.com/Civitasv/asciichart.git
-[submodule "subprojects/orpheus"]
-	path = subprojects/orpheus
-	url = https://github.com/fpgaudio/orpheus.git
 [submodule "subprojects/cordic"]
 	path = subprojects/cordic
 	url = https://github.com/gyaanantia/cordic.git
