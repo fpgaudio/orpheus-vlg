@@ -11,7 +11,10 @@ fs = import('fs')
 verilator_dep = dependency('verilator')
 # Verilator needs to fix their shit.
 # Fix your fucking pkg-config >:(.
-verilated_cpp = verilator_dep.get_pkgconfig_variable('includedir') / 'verilated.cpp'
+verilated_cpp = [
+  verilator_dep.get_pkgconfig_variable('includedir') / 'verilated.cpp',
+  verilator_dep.get_pkgconfig_variable('includedir') / 'verilated_vcd_c.cpp'
+]
 
 # Orpheus
 ###############################################################################
@@ -56,9 +59,10 @@ foreach model : verilog_models
     output: ['V' + model + '__ALL.a'],
     input: ['src' / model + '.sv'],
     build_by_default: true,
-    command: [verilator, '--cc', '--build', '@INPUT@',
+    command: [verilator, '--cc', '--trace', '--build', '@INPUT@',
               verilator_global_warn_excludes,
-              verilog_includes, '-Mdir', '@OUTDIR@']
+              verilog_includes]
+             + ['-Mdir', '@OUTDIR@']
   )
 
   test_source = meson.source_root() / 'test' / 'test_' + model + '.cpp'

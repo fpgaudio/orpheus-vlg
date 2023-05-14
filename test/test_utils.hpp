@@ -9,7 +9,9 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 #ifdef ORPHEUS_VLG_TEST_PLOTTING
 #define GNUPLOT_ENABLE_PTY
@@ -135,14 +137,47 @@ public:
   }
 };
 
-inline void plot(std::initializer_list<AbstractSignal*> signals) {
+
+namespace {
+struct PlotTypeVisitor {
+  PlotTypeVisitor(Engine canvas): m_canvas(canvas) {}
+
+  void operator()(AbstractSignal* signal) const {
+    signal->plot(m_canvas);
+  }
+  void operator()(std::vector<AbstractSignal*> signals) const {
+    for (auto signal : signals) {
+      signal->plot(m_canvas);
+    }
+  }
+
+private:
+  Engine m_canvas;
+};
+}
+
+inline void plot(
+  std::initializer_list<
+    std::variant<AbstractSignal*, std::vector<AbstractSignal*>>
+  > signals
+) {
 #ifdef ORPHEUS_VLG_TEST_PLOTTING
   gnuplotio::Gnuplot canvas;
+  // There will be as many axes as are given in the initializer list.
+  canvas << "set term qt size 2000, 1200" << std::endl;
   canvas << "set multiplot layout " << signals.size() << ", 1" << std::endl;
+  const PlotTypeVisitor variantVisitor { &canvas };
+
+  // For each value in the initializer list, we need a singular set of axes.
   for (auto signal : signals) {
+    // Reset the gnuplot plot on the new axes. Let the individual signal classes decide.
     canvas << "reset" << std::endl;
     canvas << "set lmargin 10" << std::endl;
-    signal->plot(&canvas);
+    canvas << "set bmargin 1.5" << std::endl;
+    canvas << "set rmargin 2" << std::endl;
+    canvas << "set tmargin 1" << std::endl;
+
+    std::visit(variantVisitor, signal);
   }
 #else
   std::cerr << "Warning: Plots are not currently built. No graphs will be output." << std::endl;
