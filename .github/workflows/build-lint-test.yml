@@ -26,6 +26,9 @@ jobs:
       - name: Setup Build Directory
         run: meson setup build
 
+      - name: Update subprojects
+        run: meson subprojects update
+
       - name: Attempt to Build
         working-directory: ./build
         run: meson compile
