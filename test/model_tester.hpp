@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <iostream>
 #include <functional>
+#include <iterator>
+#include <limits>
 #include <memory>
 #include <string_view>
 #include <unordered_map>
@@ -63,16 +65,20 @@ class AbstractTestParameter
 public:
   virtual void step() = 0;
   virtual bool end() = 0;
+  virtual void reset() = 0;
 };
 
 template <typename T>
 class RangeParam : public AbstractTestParameter
 {
 public:
+  RangeParam() : RangeParam(std::numeric_limits<T>::min(), std::numeric_limits<T>::max()) {}
+  RangeParam(T start) : RangeParam(start, std::numeric_limits<T>::max()) {}
   RangeParam(T start, T stop, T gait = 1): m_start(start), m_stop(stop), m_gait(gait) {}
-  constexpr void step() override { m_value += m_gait; }
-  constexpr bool end() override { return m_value == m_stop; }
+  constexpr virtual void step() override { m_value += m_gait; }
+  constexpr virtual bool end() override { return m_value >= m_stop; }
   constexpr T get() { return m_value; }
+  constexpr virtual void reset() override { m_value = m_start; }
 
 private:
   T m_start;
@@ -100,7 +106,7 @@ class AbstractTest
 public:
   AbstractTest() {
     static_assert(!WithTracing, "The AbstractTest() constructor does not support tracing.");
-    m_model = std::make_unique<Model>();
+    m_model = std::make_shared<Model>();
   }
 
   AbstractTest(VerilatedContext* ctx, const char* vcdFileName) : m_vctx(ctx) {
@@ -108,7 +114,7 @@ public:
     Verilated::traceEverOn(true);
     m_vcdFile = std::unique_ptr<VerilatedVcdC> { new VerilatedVcdC };
 
-    m_model = std::make_unique<Model>();
+    m_model = std::make_shared<Model>();
 
     m_model->trace(m_vcdFile.get(), 99);
     m_vcdFile->open(vcdFileName);
@@ -127,7 +133,7 @@ public:
    *
    * Called before each parametrized test step.
    */
-  virtual void populateInputs(Model* model) = 0;
+  virtual void populateInputs(std::shared_ptr<Model> model) = 0;
 
   virtual void seedParameters() = 0;
 
@@ -135,13 +141,13 @@ public:
    * Called before a parametrized step is called. This function is called every time
    * parametrizations change.
    */
-  virtual void onBeforeParameterizedStep(Model* model) {}
+  virtual void onBeforeParameterizedStep(std::shared_ptr<Model> model) {}
 
   /**
    * Called after a parametrized step is called. This function is called every time
    * parametrizations change.
    */
-  virtual void onAfterParametrizedStep(Model* model) {}
+  virtual void onAfterParametrizedStep(std::shared_ptr<Model> model) {}
 
   /**
    * Called every time a parametrized step is called. By default, this function just steps the
@@ -150,21 +156,21 @@ public:
    * If you require different behavior, override. By overriding this function, you can run multiple
    * steps within a single parametrization.
    */
-  virtual void onParametrizedStep(Model* model) {
+  virtual void onParametrizedStep(std::shared_ptr<Model> model) {
     step(model);
   }
 
   /**
    * Called whenever a model step is evaluated.
    */
-  virtual void onStep(Model* model) {}
+  virtual void onStep(std::shared_ptr<Model> model) {}
 
   /**
    * Does a singular step in the parametrized test.
    *
    * Effectively, this function will firstly call populateInputs(), evaluate and trace the model.
    */
-  void step(Model* model) {
+  void step(std::shared_ptr<Model> model) {
     // First, populate inputs.
     populateInputs(model);
 
@@ -184,13 +190,13 @@ public:
     m_clock.toggle();
   }
 
-  constexpr void step() { step(m_model.get()); }
+  constexpr void step() { step(m_model); }
 
-  void step(Model* model, std::size_t count) {
+  void step(std::shared_ptr<Model> model, std::size_t count) {
     for (std::size_t i = 0; i < count; i++) { step(model); }
   }
 
-  constexpr void step(std::size_t count) { step(m_model.get()); }
+  constexpr void step(std::size_t count) { step(m_model); }
 
   /**
    * Steps the simulation until the given predicate returns true.
@@ -198,9 +204,9 @@ public:
    * @param predicate Upon returning true, the model stops stepping.
    * @param maxSteps The maximum number of steps the simulation can take before throwing a warning.
    */
-  void stepUntil(std::function<bool (Model*)> predicate, std::size_t maxSteps = 1000) {
+  void stepUntil(std::function<bool (std::shared_ptr<Model>)> predicate, std::size_t maxSteps = 1000) {
     for (std::size_t i = 0; i < maxSteps; i++) {
-      if (predicate(m_model.get())) {
+      if (predicate(m_model)) {
         return;
       }
       step();
@@ -218,19 +224,12 @@ public:
     // Pull in the child parametrization.
     seedParameters();
 
-    for (const auto& [key, value] : m_parameters) {
-      while (!value->end()) {
-        onBeforeParameterizedStep(m_model.get());
-        onParametrizedStep(m_model.get());
-        value->step();
-        onAfterParametrizedStep(m_model.get());
-      }
-    }
+    parameterVisit(m_parameters.begin(), m_parameters.end());
   }
 
   template<typename T>
-  T* getParameter(std::string param) {
-    return dynamic_cast<T*>(m_parameters.at(param).get());
+  std::shared_ptr<T> getParameter(std::string param) {
+    return std::dynamic_pointer_cast<T>(m_parameters.at(param));
   };
 
   constexpr void toggleClock() { m_clock.toggle(); }
@@ -245,12 +244,32 @@ protected:
 
 private:
   ClockProvider m_clock;
-  std::unique_ptr<Model> m_model;
+  std::shared_ptr<Model> m_model;
 
   VerilatedContext* m_vctx;
   std::unique_ptr<VerilatedVcdC> m_vcdFile;
   
-  std::unordered_map<std::string, std::unique_ptr<AbstractTestParameter>> m_parameters;
+  std::unordered_map<std::string, std::shared_ptr<AbstractTestParameter>> m_parameters;
+
+  template<typename It>
+  void parameterVisit(It begin, It end) {
+    // If we are in the most-nested loop, we need to evaluate current parameter.
+    if (begin == end) {
+      onBeforeParameterizedStep(m_model);
+      onParametrizedStep(m_model);
+      onAfterParametrizedStep(m_model);
+      return;
+    }
+
+    std::shared_ptr<AbstractTestParameter> value = begin->second;
+    // Otherwise, we need to iterate over the current value frame.
+    value->reset();
+    while (!value->end()) {
+      // On each iteration, we must call the visitor on the child loops.
+      parameterVisit(std::next(begin), end);
+      value->step();
+    }
+  }
 };
 
 } // namespace Svt
