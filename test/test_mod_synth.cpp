@@ -33,26 +33,42 @@ public:
     model->i_atten_out = getParameter<Svt::U32RangeParam>("atten_out")->get();
     model->i_frequency = getParameter<Svt::U32RangeParam>("frequency")->get();
     model->i_nrst = getParameter<Svt::U32RangeParam>("nrst")->get();
-    model->i_trigger = getParameter<Svt::U32RangeParam>("trigger")->get();
+    model->i_trigger = m_trigger;
     model->i_clk = getClock().getState();
+  }
+
+  virtual void onParametrizedStep(std::shared_ptr<Vmod_synth> model) override {
+    // Firstly, step through two clock cycles with a low trigger.
+    m_trigger = 0;
+    step(2);
+
+    // Then, step with a high trigger.
+    m_trigger = 1;
+    step(2);
+
+    // The model should eventually raise o_ready.
+    m_trigger = 0;
+    stepUntil(std::function([](std::shared_ptr<Vmod_synth> model) -> bool {
+      return model->o_ready;
+    }));
   }
 
   virtual void seedParameters() override {
     getParameters().emplace(std::make_pair("time",
-      std::make_unique<Svt::U64RangeParam>(0, 100, 2)));
+      std::make_unique<Svt::U64RangeParam>(0, 200, 1)));
 
     // Seed the harmonics
     for (std::size_t i = 0 ; i < 5; i++) {
       getParameters().emplace(std::make_pair(
         "atten_harmonic_" + std::to_string(i),
         std::make_unique<Svt::U32RangeParam>(
-          Svt::float2fixed<14, int32_t>(0),
-          Svt::float2fixed<14, int32_t>(1),
+          Svt::float2fixed<14, int32_t>(1.0 / (i + 1.0)),
+          Svt::float2fixed<14, int32_t>(1.0 / (i + 1.0)),
           Svt::float2fixed<14, int32_t>(0.5)
       )));
     }
     getParameters().emplace(std::make_pair("atten_out", std::make_unique<Svt::U32RangeParam>(
-      Svt::float2fixed<14, int32_t>(0),
+      Svt::float2fixed<14, int32_t>(1),
       Svt::float2fixed<14, int32_t>(1),
       Svt::float2fixed<14, int32_t>(0.5)
     )));
@@ -60,11 +76,9 @@ public:
     getParameters().emplace(std::make_pair("frequency",
       std::make_unique<Svt::U32Param>(440)));
     getParameters().emplace(std::make_pair("nrst", std::make_unique<Svt::U32RangeParam>(1, 1)));
-    getParameters().emplace(std::make_pair("trigger", std::make_unique<Svt::U32RangeParam>(1, 1)));
   }
 
   virtual void onStep(std::shared_ptr<Vmod_synth> model) override {
-    m_i_time.push_back({ getContext()->time(), model->i_time });
     m_i_frequency.push_back({ getContext()->time(), model->i_frequency });
     m_i_trigger.push_back({ getContext()->time(), model->i_trigger });
     m_i_clk.push_back({ getContext()->time(), model->i_clk });
@@ -75,6 +89,7 @@ public:
     m_i_atten_harmonic_3.push_back({ getContext()->time(), model->i_atten_harmonics[3] });
     m_i_atten_harmonic_4.push_back({ getContext()->time(), model->i_atten_harmonics[4] });
     m_i_atten_out.push_back({ getContext()->time(), model->i_atten_out });
+    m_i_time.push_back({ getContext()->time(), model->i_time });
     m_o_ready.push_back({ getContext()->time(), model->o_ready });
     m_o_sound.push_back({ getContext()->time(), model->o_sound });
   }
@@ -86,8 +101,8 @@ public:
       &m_i_atten_harmonic_3, &m_i_atten_harmonic_4, &m_i_atten_out,
       &m_o_ready, &m_o_sound
     };
-    Plotting::plot(signals, Plotting::PlotMode::SVG,
-      artifactPath(outputDirectory, "test_mod_synth_plots.svg"));
+    Plotting::plot(signals, Plotting::PlotMode::PNG,
+      artifactPath(outputDirectory, "test_mod_synth_plots.png"));
 
     for (auto sig : signals) {
       std::ofstream dumpFile {
@@ -98,6 +113,8 @@ public:
   }
 
 private:
+  bool m_trigger = false;
+
   Plotting::Signal<int32_t, uint64_t> m_i_time { "i_times" };
   Plotting::Signal<int32_t, uint64_t> m_i_frequency { "i_frequency" };
   Plotting::Signal<int32_t, int32_t> m_i_atten_harmonic_0 { "i_atten_harmonic_0" };

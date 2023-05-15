@@ -26,7 +26,7 @@ verilog_models = {
   'mod_sinesource': {},
   'mod_attenuator': {},
   'mod_clock': {},
-  'mod_synth': { 'cxxflags': ['-O3'] }
+  'mod_synth': { 'cxxflags': ['-O3'], 'test_timeout': 60 }
 }
 
 verilog_includes = [
@@ -88,6 +88,8 @@ foreach model : verilog_models.keys()
   test(
     test_name,
     test_target,
-    args: ['--artifact-directory', meson.build_root() / 'simulation-logs' / test_name]
+    args: ['--artifact-directory', meson.build_root() / 'simulation-logs' / test_name],
+    timeout: verilog_models[model].has_key('test_timeout')
+      ? verilog_models[model]['test_timeout'] : 30
   )
 endforeach

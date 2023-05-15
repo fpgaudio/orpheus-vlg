@@ -41,12 +41,31 @@ module mod_synth#
     end
   endgenerate
 
-  mod_attenuator u_out_atten
+  logic [31:0] sum_of_sines
+    = attenuated_sines[0]
+    + attenuated_sines[1]
+    + attenuated_sines[2]
+    + attenuated_sines[3]
+    + attenuated_sines[4]
+    ;
+
+  logic sines_ready
+    = sine_ready[0]
+    & sine_ready[1]
+    & sine_ready[2]
+    & sine_ready[3]
+    & sine_ready[4]
+    ;
+
+  logic out_atten_rdy;
+  mod_attenuator u_atten_out
     ( o_sound
-    , o_ready
-    , attenuated_sines[0] + attenuated_sines[1] + attenuated_sines[2] + attenuated_sines[3]
+    , out_atten_rdy
+    , sum_of_sines
     , i_atten_out
-    , attenuators_ready[0]
+    , i_trigger
     , i_clk
     );
+
+  assign o_ready = sines_ready;
 endmodule
