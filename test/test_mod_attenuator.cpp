@@ -1,4 +1,3 @@
-#include "Vmod_sinesource.h"
 #include "orpheus.hpp"
 #include "test/model_tester.hpp"
 #include "test/test_utils.hpp"
