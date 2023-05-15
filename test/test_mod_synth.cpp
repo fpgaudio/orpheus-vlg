@@ -35,31 +35,16 @@ TEST_CASE("Test synthesizer") {
   const auto attenOut = std::numeric_limits<int16_t>::max();
   for (std::int16_t time = 0; time < std::numeric_limits<int16_t>::max(); time++) {
     model->i_time = time;
-    model->i_atten1 = atten1;
-    model->i_atten2 = atten2;
-    model->i_atten3 = atten3;
-    model->i_atten4 = atten4;
     model->i_atten_out = attenOut;
-    model->i_period = period;
     model->eval();
 
     timeLog.dump(model->i_time);
-    atten1Log.dump(model->i_atten1);
-    atten2Log.dump(model->i_atten2);
-    atten3Log.dump(model->i_atten3);
-    atten4Log.dump(model->i_atten4);
     attenOutLog.dump(model->i_atten_out);
-    periodLog.dump(model->i_period);
     oSoundLog.dump(model->o_sound);
 
     oCsvLog.dump(std::vector({
       static_cast<int32_t>(model->i_time),
-      static_cast<int32_t>(model->i_atten1),
-      static_cast<int32_t>(model->i_atten2),
-      static_cast<int32_t>(model->i_atten3),
-      static_cast<int32_t>(model->i_atten4),
       static_cast<int32_t>(model->i_atten_out),
-      static_cast<int32_t>(model->i_period),
       static_cast<int32_t>(model->o_sound)
     }));
   }

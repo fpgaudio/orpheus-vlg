@@ -2,7 +2,7 @@ module mod_sinesource
   ( output logic signed [31:0] o_sine // The current sine value 18.14
   , output logic o_ready // Pulsed when the signal is ready
   , input logic unsigned [63:0] i_time // The current time
-  , input logic unsigned [31:0] i_frequency // The sine frequency 18.14.
+  , input logic unsigned [31:0] i_frequency // The sine frequency in Hz (integer)
   , input logic i_trigger // Pulse When the sampling should trigger.
   , input logic i_clk // The global clock
   , input logic i_nrst // Negative reset.

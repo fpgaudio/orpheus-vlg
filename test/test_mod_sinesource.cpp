@@ -26,7 +26,7 @@ public:
   TestFixture(VerilatedContext* ctx, const char* vcdFileName)
     : Svt::AbstractTest<Vmod_sinesource, true>(ctx, vcdFileName) {}
 
-  virtual void populateInputs(Vmod_sinesource* model) override {
+  virtual void populateInputs(std::shared_ptr<Vmod_sinesource> model) override {
     model->i_time = getParameter<Svt::U64RangeParam>("time")->get();
     model->i_frequency = getParameter<Svt::U32RangeParam>("frequency")->get();
     model->i_trigger = m_trigger;
@@ -43,7 +43,7 @@ public:
     getParameters().emplace(std::make_pair("nrst", std::make_unique<Svt::TrueParam>()));
   }
 
-  virtual void onStep(Vmod_sinesource* model) override {
+  virtual void onStep(std::shared_ptr<Vmod_sinesource> model) override {
     m_i_time.push_back({ getContext()->time(), model->i_time });
     m_i_frequency.push_back({ getContext()->time(), model->i_frequency });
     m_i_trigger.push_back({ getContext()->time(), model->i_trigger });
@@ -57,7 +57,7 @@ public:
     m_o_ready.push_back({ getContext()->time(), model->o_ready });
   }
 
-  virtual void onParametrizedStep(Vmod_sinesource* model) override {
+  virtual void onParametrizedStep(std::shared_ptr<Vmod_sinesource> model) override {
     // Firstly, step through two clock cycles with a low trigger.
     m_trigger = 0;
     step(2);
@@ -68,7 +68,9 @@ public:
 
     // The model should eventually raise o_ready.
     m_trigger = 0;
-    stepUntil(std::function([](Vmod_sinesource* model) -> bool { return model->o_ready; }));
+    stepUntil(std::function([](std::shared_ptr<Vmod_sinesource> model) -> bool {
+      return model->o_ready;
+    }));
   }
 
   void plotTimeSeries() {
