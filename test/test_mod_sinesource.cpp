@@ -2,18 +2,23 @@
 #include "test/test_utils.hpp"
 #include <cmath>
 #include <algorithm>
+#include <fstream>
 #include <functional>
 #include <initializer_list>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
-#define CATCH_CONFIG_MAIN
-#include "catch2/catch.hpp"
+#define CATCH_CONFIG_RUNNER
+#include <catch2/catch.hpp>
 #include "Vmod_sinesource.h"
 #include <numbers>
+#include <filesystem>
+
+static std::string outputDirectory;
 
 class TestFixture : public Svt::AbstractTest<Vmod_sinesource, true>
 {
@@ -67,30 +72,66 @@ public:
   }
 
   void plotTimeSeries() {
-    Plotting::plot({
+    std::initializer_list<Plotting::AbstractSignal*> signals = {
       &m_i_time, &m_i_frequency, &m_i_trigger, &m_i_clk, &m_i_nrst,
       &m_o_ready, &m_o_sine, &m_o_sine_expected
-    });
+    };
+    Plotting::plot(signals, Plotting::PlotMode::PNG, artifactPath(outputDirectory,
+                   "test_mod_sinesource_plots.png"));
+
+    for (auto sig : signals) {
+      std::ofstream dumpFile {
+        artifactPath(outputDirectory, "test_mod_sinesource_" + sig->getSignalName() + ".txt")
+      };
+      sig->dump(dumpFile);
+    }
   }
 
 private:
   bool m_trigger = false;
 
-  Plotting::Signal<int32_t, uint64_t> m_i_time { "i\\\\_times" };
-  Plotting::Signal<int32_t, uint64_t> m_i_frequency { "i\\\\_frequency" };
-  Plotting::DigitalSignal<int32_t, bool> m_i_trigger { "i\\\\_trigger" };
-  Plotting::DigitalSignal<int32_t, bool> m_i_clk { "i\\\\_clocks" };
-  Plotting::DigitalSignal<int32_t, bool> m_i_nrst { "i\\\\_nrst" };
+  Plotting::Signal<int32_t, uint64_t> m_i_time { "i_times" };
+  Plotting::Signal<int32_t, uint64_t> m_i_frequency { "i_frequency" };
+  Plotting::DigitalSignal<int32_t, bool> m_i_trigger { "i_trigger" };
+  Plotting::DigitalSignal<int32_t, bool> m_i_clk { "i_clocks" };
+  Plotting::DigitalSignal<int32_t, bool> m_i_nrst { "i_nrst" };
 
-  Plotting::Signal<int32_t, double> m_o_sine { "o\\\\_sine" };
-  Plotting::Signal<int32_t, double> m_o_sine_expected { "o\\\\_sine\\\\_expected" };
-  Plotting::DigitalSignal<int32_t, bool> m_o_ready { "o\\\\_ready" };
+  Plotting::Signal<int32_t, double> m_o_sine { "o_sine" };
+  Plotting::Signal<int32_t, double> m_o_sine_expected { "o_sine_expected" };
+  Plotting::DigitalSignal<int32_t, bool> m_o_ready { "o_ready" };
 };
 
 TEST_CASE("Test sinesource against Orpheus") {
   const std::unique_ptr<VerilatedContext> ctx { new VerilatedContext };
-  TestFixture testFixture { ctx.get(), "test.vcd" };
+  TestFixture testFixture {
+    ctx.get(),
+    artifactPath(outputDirectory, "test_mod_sinesource.vcd").c_str()
+  };
 
   testFixture.runParametrizedTests();
   testFixture.plotTimeSeries();
+}
+
+int main(int argc, char** argv) {
+  Catch::Session session;
+
+  // CLI parsing.
+  using namespace Catch::clara;
+  auto cli
+    = session.cli()
+    | Opt(outputDirectory, "outputDirectory")
+      ["--artifact-directory"]
+      ("The output directory for artifacts.")
+      .required()
+    ;
+
+  // Now pass the new composite back to Catch2 so it uses that
+  session.cli(cli);
+
+  auto err = session.applyCommandLine(argc, argv);
+  if (err != 0) {
+    return err;
+  }
+
+  return session.run();
 }

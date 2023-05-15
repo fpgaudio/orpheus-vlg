@@ -23,7 +23,6 @@ orpheus_dep = orpheus_proj.get_variable('liborpheus_dep')
 
 verilator = find_program('verilator')
 verilog_models = [
-  'mod_sine16',
   'mod_sinesource',
   'mod_attenuator',
   'mod_clock',
@@ -68,9 +67,10 @@ foreach model : verilog_models
   test_source = meson.source_root() / 'test' / 'test_' + model + '.cpp'
 
   if fs.exists(test_source)
+    test_name = 'test_' + model
     test_target = executable(
-      'test_' + model,
-      ['test' / 'test_' + model + '.cpp', verilated_cpp, vlg_target],
+      test_name,
+      ['test' / test_name + '.cpp', verilated_cpp, vlg_target],
       cpp_args: test_flags,
       dependencies: [
         catch2_dep,
@@ -80,5 +80,9 @@ foreach model : verilog_models
     )
   endif
 
-  test('test_' + model, test_target)
+  test(
+    test_name,
+    test_target,
+    args: ['--artifact-directory', meson.build_root() / 'simulation-logs' / test_name]
+  )
 endforeach

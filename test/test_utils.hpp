@@ -5,6 +5,8 @@
 #include <initializer_list>
 #include <iomanip>
 #include <iostream>
+#include <limits>
+#include <regex>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -13,6 +15,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <filesystem>
 #ifdef ORPHEUS_VLG_TEST_PLOTTING
 #define GNUPLOT_ENABLE_PTY
 #include <gnuplot-iostream.h>
@@ -78,6 +81,8 @@ class AbstractSignal
 {
 public:
   virtual void plot(Engine canvas) = 0;
+  virtual void dump(std::ostream& stream) = 0;
+  virtual const std::string& getSignalName() = 0;
 };
 
 template <typename T, typename K>
@@ -98,9 +103,11 @@ public:
 
   virtual void plot(Engine eng) override {
 #ifdef ORPHEUS_VLG_TEST_PLOTTING
+    const std::string sanitized = std::regex_replace(this->getSignalName(),
+                                                     std::regex("_"), "\\\\_");
     auto& canvas = *eng;
     canvas << "set grid" << std::endl;
-    canvas << "plot '-' with lines title \"" << m_signalName << "\"" << std::endl;
+    canvas << "plot '-' with lines title \"" << sanitized << "\"" << std::endl;
     canvas.send1d(m_data);
 #endif // ORPHEUS_VLG_TEST_PLOTTING
   }
@@ -109,7 +116,17 @@ public:
     m_data.push_back(datum);
   }
 
-  constexpr std::string& getSignalName() { return m_signalName; }
+  virtual void dump(std::ostream& into) override {
+    for (auto& datum : getData()) {
+      into << std::setw(sizeof(K) * 2)
+           << std::setfill('0')
+           << std::hex
+           << std::get<1>(datum)
+           << std::endl;
+    }
+  }
+
+  constexpr virtual std::string& getSignalName() override { return m_signalName; }
   constexpr std::vector<std::tuple<T, K>>& getData() { return m_data; }
 
 protected:
@@ -127,46 +144,45 @@ public:
     : Signal<T, K>(xs, ys, signalName) {}
   virtual void plot(Engine eng) override {
 #ifdef ORPHEUS_VLG_TEST_PLOTTING
+    const std::string sanitized = std::regex_replace(this->getSignalName(),
+                                                     std::regex("_"), "\\\\_");
     auto& canvas = *eng;
     canvas << "set grid" << std::endl;
     canvas << "set yrange [-0.1:1.1]" << std::endl;
     canvas << "set ytics 0,1,1" << std::endl;
-    canvas << "plot '-' with steps title \"" << this->getSignalName() << "\"" << std::endl;
+    canvas << "plot '-' with steps title \"" << sanitized << "\"" << std::endl;
     canvas.send1d(this->getData());
 #endif // ORPHEUS_VLG_TEST_PLOTTING
   }
 };
 
-
-namespace {
-struct PlotTypeVisitor {
-  PlotTypeVisitor(Engine canvas): m_canvas(canvas) {}
-
-  void operator()(AbstractSignal* signal) const {
-    signal->plot(m_canvas);
-  }
-  void operator()(std::vector<AbstractSignal*> signals) const {
-    for (auto signal : signals) {
-      signal->plot(m_canvas);
-    }
-  }
-
-private:
-  Engine m_canvas;
+enum class PlotMode
+{
+  PNG,
+  QT
 };
-}
 
 inline void plot(
-  std::initializer_list<
-    std::variant<AbstractSignal*, std::vector<AbstractSignal*>>
-  > signals
+  std::initializer_list<AbstractSignal*> signals,
+  PlotMode plotMode,
+  std::string outputName = "plot.png"
 ) {
 #ifdef ORPHEUS_VLG_TEST_PLOTTING
   gnuplotio::Gnuplot canvas;
   // There will be as many axes as are given in the initializer list.
-  canvas << "set term qt size 2000, 1200" << std::endl;
+  switch (plotMode)
+  {
+    case PlotMode::QT: {
+      canvas << "set term qt size 2000, 1200" << std::endl;
+      break;
+    }
+    case PlotMode::PNG: {
+      canvas << "set term png size 2000, 1200" << std::endl;
+      canvas << "set output '" << outputName << "' " << std::endl;
+      break;
+    }
+  }
   canvas << "set multiplot layout " << signals.size() << ", 1" << std::endl;
-  const PlotTypeVisitor variantVisitor { &canvas };
 
   // For each value in the initializer list, we need a singular set of axes.
   for (auto signal : signals) {
@@ -177,7 +193,7 @@ inline void plot(
     canvas << "set rmargin 2" << std::endl;
     canvas << "set tmargin 1" << std::endl;
 
-    std::visit(variantVisitor, signal);
+    signal->plot(&canvas);
   }
 #else
   std::cerr << "Warning: Plots are not currently built. No graphs will be output." << std::endl;
@@ -186,5 +202,16 @@ inline void plot(
 }
 
 } // namespace Plotting
+
+inline std::string artifactPath(std::string outputDirectory, std::string forArtifact) {
+  const auto outDir = std::filesystem::absolute(outputDirectory);
+  if (!std::filesystem::create_directories(outDir)) {
+    if (!std::filesystem::exists(outDir)) {
+      throw std::runtime_error(std::string("Cannot create the output directory ")
+          + outDir.string() + ". Exiting");
+    }
+  }
+  return outDir / forArtifact;
+}
 
 #endif // TEST_UTILS_HPP
