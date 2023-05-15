@@ -22,12 +22,12 @@ orpheus_proj = subproject('orpheus')
 orpheus_dep = orpheus_proj.get_variable('liborpheus_dep')
 
 verilator = find_program('verilator')
-verilog_models = [
-  'mod_sinesource',
-  'mod_attenuator',
-  'mod_clock',
-  'mod_synth'
-]
+verilog_models = {
+  'mod_sinesource': {},
+  'mod_attenuator': {},
+  'mod_clock': {},
+  'mod_synth': { 'cxxflags': ['-O3'] }
+}
 
 verilog_includes = [
   '-I' + meson.source_root() / 'src',
@@ -47,12 +47,12 @@ gnuplot_iostream_proj = cmake.subproject('gnuplot-iostream',
                                          required: gnuplot.found())
 gnuplot_iostream_dep = gnuplot_iostream_proj.dependency('gnuplot-iostream')
 
-test_flags = []
+global_test_flags = []
 if get_option('test-graphs').enabled()
-  test_flags += '-DORPHEUS_VLG_TEST_PLOTTING'
+  global_test_flags += '-DORPHEUS_VLG_TEST_PLOTTING'
 endif
 
-foreach model : verilog_models
+foreach model : verilog_models.keys()
   vlg_target = custom_target(
     model,
     output: ['V' + model + '__ALL.a'],
@@ -65,6 +65,11 @@ foreach model : verilog_models
   )
 
   test_source = meson.source_root() / 'test' / 'test_' + model + '.cpp'
+
+  test_flags = global_test_flags
+  if verilog_models[model].has_key('cxxflags')
+    test_flags += verilog_models[model]['cxxflags']
+  endif
 
   if fs.exists(test_source)
     test_name = 'test_' + model

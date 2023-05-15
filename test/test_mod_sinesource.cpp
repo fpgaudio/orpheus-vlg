@@ -31,7 +31,7 @@ public:
     model->i_frequency = getParameter<Svt::U32RangeParam>("frequency")->get();
     model->i_trigger = m_trigger;
     model->i_clk = getClock().getState();
-    model->i_nrst = getParameter<Svt::BoolRangeParam>("nrst")->get();
+    model->i_nrst = getParameter<Svt::U32RangeParam>("nrst")->get();
   }
 
   virtual void seedParameters() override {
@@ -40,7 +40,7 @@ public:
       "frequency",
       std::make_unique<Svt::U32Param>(440))
     );
-    getParameters().emplace(std::make_pair("nrst", std::make_unique<Svt::TrueParam>()));
+    getParameters().emplace(std::make_pair("nrst", std::make_unique<Svt::U32RangeParam>(1, 1)));
   }
 
   virtual void onStep(std::shared_ptr<Vmod_sinesource> model) override {

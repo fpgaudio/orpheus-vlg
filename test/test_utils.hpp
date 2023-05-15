@@ -159,7 +159,8 @@ public:
 enum class PlotMode
 {
   PNG,
-  QT
+  QT,
+  SVG
 };
 
 inline void plot(
@@ -172,6 +173,11 @@ inline void plot(
   // There will be as many axes as are given in the initializer list.
   switch (plotMode)
   {
+    case PlotMode::SVG: {
+      canvas << "set term svg size 2000, 1200" << std::endl;
+      canvas << "set output '" << outputName << "' " << std::endl;
+      break;
+    }
     case PlotMode::QT: {
       canvas << "set term qt size 2000, 1200" << std::endl;
       break;
