@@ -27,7 +27,7 @@ jobs:
         run: meson setup build
 
       - name: Update subprojects
-        run: meson subprojects update
+        run: meson subprojects update --reset
 
       - name: Attempt to Build
         working-directory: ./build
