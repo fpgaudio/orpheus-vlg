@@ -33,3 +33,6 @@
 
 .cache
 build/
+
+# Quartus loves to drop these
+*.bak

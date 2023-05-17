@@ -1,114 +1,68 @@
-module mod_7seg
-  ( output logic o_a // Top segment
-  , output logic o_b // Top right segment
-  , output logic o_c // Bottom right segment
-  , output logic o_d // Bottom segment
-  , output logic o_e // Bottom left segment
-  , output logic o_f // Top left segment
-  , output logic o_g // Middle segment
+module mod_7seg#
+  ( parameter DEFAULT_STATE = 'b0000000 // The default state.
+  ) ( output logic [0:6] o_segments // The individual segments,
+                                  // clockwise, top first.
   , input logic [3:0] i_value // Input value
+  , input logic i_clk // The clock.
+  , input logic i_nrst // Negative async reset.
   );
-  always @(*) begin
-    case (i_value)
-      0: begin
-        assign o_a = 1;
-        assign o_b = 1;
-        assign o_c = 1;
-        assign o_d = 1;
-        assign o_e = 1;
-        assign o_f = 1;
-        assign o_g = 0;
-      end
-      1: begin
-        assign o_a = 0;
-        assign o_b = 1;
-        assign o_c = 1;
-        assign o_d = 0;
-        assign o_e = 0;
-        assign o_f = 0;
-        assign o_g = 0;
-      end
-      2: begin
-        assign o_a = 1;
-        assign o_b = 1;
-        assign o_c = 0;
-        assign o_d = 1;
-        assign o_e = 1;
-        assign o_f = 0;
-        assign o_g = 1;
-      end
-      3: begin
-        assign o_a = 1;
-        assign o_b = 1;
-        assign o_c = 1;
-        assign o_d = 1;
-        assign o_e = 0;
-        assign o_f = 0;
-        assign o_g = 1;
-      end
-      4: begin
-        assign o_a = 0;
-        assign o_b = 1;
-        assign o_c = 1;
-        assign o_d = 0;
-        assign o_e = 0;
-        assign o_f = 1;
-        assign o_g = 1;
-      end
-      5: begin
-        assign o_a = 1;
-        assign o_b = 0;
-        assign o_c = 1;
-        assign o_d = 1;
-        assign o_e = 0;
-        assign o_f = 0;
-        assign o_g = 1;
-      end
-      6: begin
-        assign o_a = 1;
-        assign o_b = 0;
-        assign o_c = 1;
-        assign o_d = 1;
-        assign o_e = 1;
-        assign o_f = 1;
-        assign o_g = 1;
-      end
-      7: begin
-        assign o_a = 1;
-        assign o_b = 1;
-        assign o_c = 1;
-        assign o_d = 0;
-        assign o_e = 0;
-        assign o_f = 0;
-        assign o_g = 0;
-      end
-      8: begin
-        assign o_a = 1;
-        assign o_b = 1;
-        assign o_c = 1;
-        assign o_d = 1;
-        assign o_e = 1;
-        assign o_f = 1;
-        assign o_g = 1;
-      end
-      9: begin
-        assign o_a = 1;
-        assign o_b = 1;
-        assign o_c = 1;
-        assign o_d = 1;
-        assign o_e = 0;
-        assign o_f = 1;
-        assign o_g = 1;
-      end
-      default: begin
-        assign o_a = 0;
-        assign o_b = 0;
-        assign o_c = 0;
-        assign o_d = 0;
-        assign o_e = 0;
-        assign o_f = 0;
-        assign o_g = 0;
-      end
-    endcase
-  end
+
+  always @(posedge i_clk or negedge i_nrst)
+    if (!i_nrst) begin
+      o_segments <= ~DEFAULT_STATE;
+    end else begin
+      case (i_value)
+        0: begin
+          o_segments <= ~'b1111110;
+        end
+        1: begin
+          o_segments <= ~'b0110000;
+        end
+        2: begin
+          o_segments <= ~'b1101101;
+        end
+        3: begin
+          o_segments <= ~'b1111001;
+        end
+        4: begin
+          o_segments <= ~'b0110011;
+        end
+        5: begin
+          o_segments <= ~'b1011011;
+        end
+        6: begin
+          o_segments <= ~'b1011111;
+        end
+        7: begin
+          o_segments <= ~'b1110000;
+        end
+        8: begin
+          o_segments <= ~'b1111111;
+        end
+        9: begin
+          o_segments <= ~'b1111011;
+        end
+        'ha: begin
+          o_segments <= ~'b1110111;
+        end
+        'hb: begin
+          o_segments <= ~'b0011111;
+        end
+        'hc: begin
+          o_segments <= ~'b1001110;
+        end
+        'hd: begin
+          o_segments <= ~'b0111101;
+        end
+        'he: begin
+          o_segments <= ~'b1001111;
+        end
+        'hf: begin
+          o_segments <= ~'b1000111;
+        end
+        default: begin
+          o_segments <= ~DEFAULT_STATE;
+        end
+      endcase
+    end
 endmodule
