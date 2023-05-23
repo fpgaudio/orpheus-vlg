@@ -1,7 +1,8 @@
+#include <verilated.h>
+#include <verilated_vpi.h>
 #include "orpheus.hpp"
 #include "test/model_tester.hpp"
 #include "test/test_utils.hpp"
-#include "verilated.h"
 #include <cstdint>
 #include <fstream>
 #include <limits>

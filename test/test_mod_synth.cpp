@@ -1,6 +1,7 @@
+#include <verilated.h>
+#include <verilated_vpi.h>
 #include "test/model_tester.hpp"
 #include "test/test_utils.hpp"
-#include "verilated.h"
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
