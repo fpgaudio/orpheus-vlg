@@ -1,8 +1,9 @@
 #ifndef MODEL_TESTER_HPP
 #define MODEL_TESTER_HPP
 
-#include "verilated.h"
-#include "verilated_vcd_c.h"
+#include <verilated.h>
+#include <verilated_vcd_c.h>
+#include <verilated_vpi.h>
 #include <cstdint>
 #include <iostream>
 #include <functional>
