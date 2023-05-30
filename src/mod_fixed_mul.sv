@@ -11,7 +11,8 @@ module mod_fixed_mul#
   , input logic i_clk // The clock
   );
 
-  logic [((INPUT_WIDTH * 2) - 1):0] temp_reg = i_a * i_b;
+  logic [((INPUT_WIDTH * 2) - 1):0] temp_reg;
+  assign temp_reg = i_a * i_b;
 
   assign o_out = INPUT_WIDTH'(temp_reg >> INPUT_POINT);
   assign o_ready = 1; // Combi implementation

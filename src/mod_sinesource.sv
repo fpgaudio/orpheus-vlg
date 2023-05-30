@@ -9,8 +9,10 @@ module mod_sinesource
   );
   localparam TWO_PI = 32'h0001921f;
   localparam SAMPLE_RATE = 48000;
-  logic [63:0] pi2scaled = i_time * TWO_PI / SAMPLE_RATE * i_frequency ;
-  logic [31:0] angle32 = (pi2scaled) % TWO_PI;
+  logic [63:0] pi2scaled;
+  assign pi2scaled = i_time * TWO_PI / SAMPLE_RATE * i_frequency ;
+  logic [31:0] angle32;
+  assign angle32 = (pi2scaled) % TWO_PI;
 
   logic signed [16:0] sine;
   logic signed [16:0] cosine; // Unused

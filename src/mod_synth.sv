@@ -17,8 +17,9 @@ module mod_synth#
   logic [0:(NUM_HARMONICS - 1)] attenuators_ready;
   logic [0:(NUM_HARMONICS - 1)][31:0] sine_outputs;
   logic [0:(NUM_HARMONICS - 1)][31:0] attenuated_sines;
+  genvar i;
   generate
-    for (genvar i = 0; i < NUM_HARMONICS; i++) begin: l_sine_generate
+    for (i = 0; i < NUM_HARMONICS; i++) begin: l_sine_generate
       mod_sinesource u_sine
         ( sine_outputs[i]
         , sine_ready[i]
@@ -41,7 +42,8 @@ module mod_synth#
     end
   endgenerate
 
-  logic [31:0] sum_of_sines
+  logic [31:0] sum_of_sines;
+  assign sum_of_sines
     = attenuated_sines[0]
     + attenuated_sines[1]
     + attenuated_sines[2]
@@ -49,7 +51,8 @@ module mod_synth#
     + attenuated_sines[4]
     ;
 
-  logic sines_ready
+  logic sines_ready;
+  assign sines_ready
     = sine_ready[0]
     & sine_ready[1]
     & sine_ready[2]
