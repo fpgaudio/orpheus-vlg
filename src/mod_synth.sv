@@ -17,8 +17,8 @@ module mod_synth#
   logic [0:(NUM_HARMONICS - 1)] attenuators_ready;
   logic [0:(NUM_HARMONICS - 1)][31:0] sine_outputs;
   logic [0:(NUM_HARMONICS - 1)][31:0] attenuated_sines;
-  genvar i;
   generate
+    genvar i;
     for (i = 0; i < NUM_HARMONICS; i++) begin: l_sine_generate
       mod_sinesource u_sine
         ( sine_outputs[i]
