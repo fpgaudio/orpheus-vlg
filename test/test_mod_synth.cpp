@@ -117,17 +117,17 @@ private:
 
   Plotting::Signal<int32_t, uint64_t> m_i_time { "i_times" };
   Plotting::Signal<int32_t, uint64_t> m_i_frequency { "i_frequency" };
-  Plotting::Signal<int32_t, int32_t> m_i_atten_harmonic_0 { "i_atten_harmonic_0" };
-  Plotting::Signal<int32_t, int32_t> m_i_atten_harmonic_1 { "i_atten_harmonic_1" };
-  Plotting::Signal<int32_t, int32_t> m_i_atten_harmonic_2 { "i_atten_harmonic_2" };
-  Plotting::Signal<int32_t, int32_t> m_i_atten_harmonic_3 { "i_atten_harmonic_3" };
-  Plotting::Signal<int32_t, int32_t> m_i_atten_harmonic_4 { "i_atten_harmonic_4" };
-  Plotting::Signal<int32_t, int32_t> m_i_atten_out { "i_atten_out" };
+  Plotting::Signal<int32_t, uint32_t> m_i_atten_harmonic_0 { "i_atten_harmonic_0" };
+  Plotting::Signal<int32_t, uint32_t> m_i_atten_harmonic_1 { "i_atten_harmonic_1" };
+  Plotting::Signal<int32_t, uint32_t> m_i_atten_harmonic_2 { "i_atten_harmonic_2" };
+  Plotting::Signal<int32_t, uint32_t> m_i_atten_harmonic_3 { "i_atten_harmonic_3" };
+  Plotting::Signal<int32_t, uint32_t> m_i_atten_harmonic_4 { "i_atten_harmonic_4" };
+  Plotting::Signal<int32_t, uint32_t> m_i_atten_out { "i_atten_out" };
   Plotting::DigitalSignal<int32_t, bool> m_i_trigger { "i_trigger" };
   Plotting::DigitalSignal<int32_t, bool> m_i_clk { "i_clocks" };
   Plotting::DigitalSignal<int32_t, bool> m_i_nrst { "i_nrst" };
   Plotting::DigitalSignal<int32_t, bool> m_o_ready { "o_ready" };
-  Plotting::Signal<int32_t, int32_t> m_o_sound { "o_sound" };
+  Plotting::Signal<int32_t, uint32_t> m_o_sound { "o_sound" };
 };
 
 TEST_CASE("Test synthesizer") {

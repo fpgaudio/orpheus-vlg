@@ -49,10 +49,12 @@ public:
     m_i_trigger.push_back({ getContext()->time(), model->i_trigger });
     m_i_clk.push_back({ getContext()->time(), model->i_clk });
     m_i_nrst.push_back({ getContext()->time(), model->i_nrst });
-    m_o_sine.push_back({ getContext()->time(), Svt::fixed2float<14, double>(model->o_sine) });
+    m_o_sine.push_back({ getContext()->time(), model->o_sine });
     m_o_sine_expected.push_back({
       getContext()->time(),
-      std::sin(model->i_time / 48000.0 * model->i_frequency * std::numbers::pi * 2.0)
+      Svt::float2fixed<15, double>(
+        std::sin(model->i_time / 48000.0 * model->i_frequency * std::numbers::pi * 2.0)
+      )
     });
     m_o_ready.push_back({ getContext()->time(), model->o_ready });
   }
@@ -98,8 +100,8 @@ private:
   Plotting::DigitalSignal<int32_t, bool> m_i_clk { "i_clocks" };
   Plotting::DigitalSignal<int32_t, bool> m_i_nrst { "i_nrst" };
 
-  Plotting::Signal<int32_t, double> m_o_sine { "o_sine" };
-  Plotting::Signal<int32_t, double> m_o_sine_expected { "o_sine_expected" };
+  Plotting::Signal<int32_t, uint32_t> m_o_sine { "o_sine" };
+  Plotting::Signal<int32_t, uint32_t> m_o_sine_expected { "o_sine_expected" };
   Plotting::DigitalSignal<int32_t, bool> m_o_ready { "o_ready" };
 };
 

@@ -22,6 +22,8 @@ public:
   virtual void populateInputs(std::shared_ptr<Vmod_attenuator> model) override {
     model->i_raw = getParameter<Svt::I32RangeParam>("raw")->get();
     model->i_attenfactor = getParameter<Svt::I32RangeParam>("attenfactor")->get();
+    model->i_clk = getClock().getState();
+    model->i_trigger = 1;
   }
 
   virtual void seedParameters() override {
@@ -62,9 +64,9 @@ public:
   }
 
 private:
-  Plotting::Signal<uint32_t, int32_t> m_o_attenuated { "o_attenuated" };
-  Plotting::Signal<uint32_t, int32_t> m_i_raw { "i_raw" };
-  Plotting::Signal<uint32_t, int16_t> m_i_attenfactor { "i_attenfactor" };
+  Plotting::Signal<uint32_t, uint32_t> m_o_attenuated { "o_attenuated" };
+  Plotting::Signal<uint32_t, uint32_t> m_i_raw { "i_raw" };
+  Plotting::Signal<uint32_t, uint16_t> m_i_attenfactor { "i_attenfactor" };
 };
 
 TEST_CASE("Test attenutator against Orpheus") {
